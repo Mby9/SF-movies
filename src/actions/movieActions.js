@@ -4,13 +4,33 @@ import { v4 as uuid } from "uuid";
 
 export const getMovies = () => async dispatch => {
     const res = await axios.get("https://data.sfgov.org/resource/yitu-d5am.json");
+    const formatted = {};
+
+    res.data.forEach(element => {
+        if (formatted[element.title]) {
+            const locations = formatted[element.title].locations
+            if (locations.indexOf(element.locations) === -1) {
+                formatted[element.title].locations.push(element.locations)
+            }
+        } else {
+            formatted[element.title] = {
+                ...element,
+                id: uuid(),
+                locations: [element.locations],
+                actors: [element.actor_1, element.actor_2, element.actor_3]
+            };
+        }
+    });
+
+    console.log(formatted);
+
     res.data.map(movie => ({
         ...movie,
         id: uuid()
     }))
     dispatch({
         type: GET_MOVIES,
-        payload: res.data
+        payload: Object.values(formatted)
     });
 }
 
